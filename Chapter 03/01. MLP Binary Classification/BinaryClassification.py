@@ -2,10 +2,11 @@ import torch as T
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-
 import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
-df = pd.read_csv(r'D:\DATASCIENCE\DeepLearning-DS\Chapter 03\01. MLP Binary Classification\data.csv')
+df = pd.read_csv(r'D:\DATASCIENCE\DeepLearning-DS\Chapter 03\01. MLP Binary Classification\data.csv', header=None)
 
 # print(df.head())
 
@@ -30,14 +31,55 @@ class Classifier(nn.Module):
         return self.sigmoid(out_layer)
 
 
-loss = nn.BCELoss()
 model = Classifier()
-optimizer = T.optim.Adam(model.parameters(), lr=0.001)
-x = np.random.rand(1000,2)
-y = np.random.randint(0, 2, 1000)
-x_tensor = T.tensor(x).float()
-y_true_tensor = T.tensor(y).float()
-y_true_tensor = y_true_tensor.view(1000,1) # view function is the same as reshape in numpy
-y_pred_tensor = model(x_tensor)
-loss_value = loss(y_pred_tensor, y_true_tensor)
-print(f"Initial loss: {loss_value.item():.2f}")
+
+criterion = nn.BCELoss()
+optimizer = T.optim.Adam(model.parameters(), lr=1e-3) # 0.001 1 * 10^-3
+
+X = T.from_numpy(df[[0, 1]].values).float()
+y = T.from_numpy(df[[2]].values).float()
+
+x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=0.7, random_state=73)
+
+epochs = 1000
+
+train_losses = []
+test_losses = []
+accuracies = []
+
+for epoch in range(epochs):
+
+    optimizer.zero_grad()   # 1st step: reset the gradients
+
+    pred = model.forward(x_train) #2nd step: make the prediction
+
+    train_loss = criterion(pred, y_train)   #3rd step: compute the loss
+
+    train_loss.backward() #4th step: backward pass
+
+    optimizer.step() #5th step: save the weights
+
+    model.eval()
+    with T.no_grad():
+        test_pred = model.forward(x_test)
+
+        test_loss = criterion(test_pred, y_test)
+
+        classes = test_pred > 0.5
+
+        acc = sum(classes == y_test) / classes.shape[0]
+
+    model.train()
+
+    train_losses.append(train_loss.item())
+    test_losses.append(test_loss.item())
+    accuracies.append(acc)
+    print(f'Epoch: {epoch + 1} | loss: {train_loss.item()} | test loss: {test_loss.item()} | accuracy: {acc}')
+
+
+plt.plot(train_losses, label='train Loss')
+plt.plot(test_losses, label='test Loss')
+plt.plot(accuracies, label='accuracy')
+plt.legend()
+plt.show()
+
