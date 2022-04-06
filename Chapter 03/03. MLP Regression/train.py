@@ -4,7 +4,7 @@ import data_handler as dh           # yes, you can import your code. Cool!
 import torch
 import torch.optim as optim
 import torch.nn as nn
-
+from sklearn import metrics
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -18,11 +18,11 @@ epochs = 10
 
 
 criterion = nn.MSELoss()
-optimizer = optim.SGD(model.parameters(), lr=0.001)
+optimizer = optim.SGD(model.parameters(), lr=1e-3)
 
 loss_train = []
 loss_test = []
-
+MSE = []
 
 for epoch in range(epochs):
 
@@ -44,10 +44,12 @@ for epoch in range(epochs):
 
             test_loss = criterion(test_pred, y_tsbh)
 
+
         model.train()
 
         loss_train.append(train_loss.item())
         loss_test.append(test_loss.item())
+       
         print(f'Epoch: {epoch + 1} | loss: {train_loss.item()} | test loss: {test_loss.item()}' )
 
 
