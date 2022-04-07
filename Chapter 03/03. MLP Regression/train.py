@@ -22,7 +22,7 @@ optimizer = optim.SGD(model.parameters(), lr=1e-3)
 
 loss_train = []
 loss_test = []
-MSE = []
+
 
 for epoch in range(epochs):
 
